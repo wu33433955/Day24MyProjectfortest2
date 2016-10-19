@@ -2,6 +2,7 @@ package com.qf.wmj.day24myprojectfortest.activity;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.net.ConnectivityManager;
@@ -47,17 +48,40 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private TextView cehua_tv3;
     private TextView cehua_tv4;
     private ScrollView scrollView_cehua;
+    private boardcast bd;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+//        judgeNet(this,"data");
+
+/**
+ * 动态发送广播，发送给自定义广播接收者
+ */
+        //意图过滤器
+        IntentFilter filter=new IntentFilter();
+        //实例化广播接收者
+        bd = new boardcast();
+        //添加行为
+        filter.addAction("WIFI");
+        //动态注册广播
+        registerReceiver(bd,filter);
+
+        //意图
+        Intent intent = new Intent();
+        //意图行为
+        intent.setAction("WIFI");
+        //发送广播
+        sendBroadcast(intent);
+        unregisterReceiver(bd);
+
         setContentView(R.layout.activity_main);
         initView();
         toolbar.setTitle("热门应用");
         toolbar.setTitleTextColor(Color.WHITE);
 
-
+        new PullToRefreshListView(this);
         setSupportActionBar(toolbar);
 
         getSupportActionBar().setHomeButtonEnabled(true);
@@ -70,7 +94,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 0);
         toggle.syncState();
         drawerLayout.setDrawerListener(toggle);
-        judgeNet(this,"data");
+
         //定义集合添加碎片（fragment）
         ArrayList<Fragment> list = new ArrayList<>();
         FragmentManager manager = getSupportFragmentManager();
@@ -84,6 +108,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         list.add(dFragment);
         MainAdapter adapter = new MainAdapter(manager,list);
         main_vp.setAdapter(adapter);
+
     }
 
     private void initView() {
@@ -216,7 +241,6 @@ private boolean isBack=true;
                 case ConnectivityManager.TYPE_WIFI://WIFI状态
                     SharedPreferences sp = context.getSharedPreferences(name, Context.MODE_PRIVATE);
                     SharedPreferences.Editor edit = sp.edit();
-
                     edit.putBoolean("isWIFI",true);
                     edit.commit();
                     break;

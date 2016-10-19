@@ -14,6 +14,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.bumptech.glide.Glide;
 import com.qf.wmj.day24myprojectfortest.R;
 import com.qf.wmj.day24myprojectfortest.activity.NetActivity;
 import com.qf.wmj.day24myprojectfortest.bean.Bean;
@@ -28,10 +29,13 @@ import java.util.ArrayList;
 public class FragmentAdapter extends BaseAdapter{
     private LayoutInflater inflater;
     private ArrayList<Bean> list;
+    private Context context;
+    private Bean bean;
 
     public FragmentAdapter(Context context) {
         inflater = LayoutInflater.from(context);
         list = new ArrayList<>();
+        this.context=context;
     }
     //用来往集合中添加数据
     public void addData(ArrayList<Bean> list) {
@@ -77,15 +81,20 @@ public class FragmentAdapter extends BaseAdapter{
             holder = (viewHolder) convertView.getTag();
         }
         //得到当前行的数据对象
-        Bean bean = (Bean) getItem(position);
+        bean = (Bean) getItem(position);
         //Bean bean1 = list.get(position);
         //给视图设置数据
         holder.description.setText(bean.getDescription());
         holder.title.setText(bean.getTitle());
 
         holder.img.setImageResource(R.drawable.load01);
-        holder.img.setTag(bean.getCover_url());
-        BitmapDownloadUtil.downloadBitmap(bean.getCover_url(), holder.img);
+        SharedPreferences isWIFI = context.getSharedPreferences("isWIFI",Context.MODE_PRIVATE);
+        boolean wifi = isWIFI.getBoolean("isWIFI", false);
+        if(wifi){
+            Glide.with(context).load(bean.getCover_url()).into(holder.img);
+        }
+        //holder.img.setTag(bean.getCover_url());
+       // BitmapDownloadUtil.downloadBitmap(bean.getCover_url(), holder.img);
         //返回当前带有数据的视图
         return convertView;
     }

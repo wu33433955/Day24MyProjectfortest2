@@ -14,6 +14,8 @@ import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.qf.wmj.day24myprojectfortest.R;
 import com.qf.wmj.day24myprojectfortest.activity.Info;
 import com.qf.wmj.day24myprojectfortest.adapter.FragmentAdapter;
@@ -31,11 +33,12 @@ import java.util.ArrayList;
 /**
  * Created by JB on 2016/10/12.
  */
-public class BFragment extends Fragment implements AbsListView.OnScrollListener, AdapterView.OnItemClickListener, JsonDownloadUtil.onDownloadJsonListener {
+public class BFragment extends Fragment implements AdapterView.OnItemClickListener,
+        JsonDownloadUtil.onDownloadJsonListener, PullToRefreshBase.OnLastItemVisibleListener,PullToRefreshBase.OnRefreshListener {
     private int page=1;
     private FragmentAdapter adapter;
     private ArrayList<Bean> list1=new ArrayList<Bean>();
-    private ListView fregment_listview_lv;
+    private PullToRefreshListView fregment_listview_lv;
     // 是否在底部
     boolean isBottom = false;
     // 是否在顶部
@@ -50,13 +53,15 @@ public class BFragment extends Fragment implements AbsListView.OnScrollListener,
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        fregment_listview_lv = (ListView) view.findViewById(R.id.fregment_listview_lv);
+        fregment_listview_lv = (PullToRefreshListView) view.findViewById(R.id.fregment_listview_lv);
         //获取当前页数据
         getData(page);
         adapter= new FragmentAdapter(getActivity());
         fregment_listview_lv.setAdapter(adapter);
-        // 设置滑动监听器
-        fregment_listview_lv.setOnScrollListener(this);
+        //设置下拉刷新监听
+        fregment_listview_lv.setOnRefreshListener(this);
+        //设置上拉加载监听
+        fregment_listview_lv.setOnLastItemVisibleListener(this);
         // 设置Item点击监听器
         fregment_listview_lv.setOnItemClickListener(this);
     }
@@ -71,29 +76,6 @@ public class BFragment extends Fragment implements AbsListView.OnScrollListener,
     }
 
     @Override
-    public void onScrollStateChanged(AbsListView view, int scrollState) {
-        // 判断当前滑动状态是否为停止状态
-        if (scrollState == SCROLL_STATE_IDLE) {
-            // 判断是否为底部，是则获取当前页数进行加载，页数自增
-            if (isBottom) {
-                page++;
-                getData(page);
-                // 判断是否为顶部，是则清除当前数据，页数重置实现刷新
-            } else if (isTop) {
-                page = 1;
-                adapter.clearData();
-                getData(page);
-            }
-        }
-    }
-
-    @Override
-    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        isBottom = firstVisibleItem + visibleItemCount == totalItemCount;
-        isTop = firstVisibleItem == 0;
-    }
-
-    @Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if(position>0){
             String id2 = list1.get(position-1).getId();
@@ -104,7 +86,6 @@ public class BFragment extends Fragment implements AbsListView.OnScrollListener,
             startActivity(intent);
         }
     }
-
     @Override
     public void onSendJson(String json) {
         DBManager manager = new DBManager(getActivity());
@@ -154,6 +135,25 @@ public class BFragment extends Fragment implements AbsListView.OnScrollListener,
             adapter.addData(list2);
             fregment_listview_lv.setAdapter(adapter);
         }
+    }
+    //下拉加载时调用
+    @Override
+    public void onLastItemVisible() {
+        page++;
+        getData(page);
+    }
+    //上拉刷新时调用
+    @Override
+    public void onRefresh(PullToRefreshBase refreshView) {
+        page=1;
+        adapter.clearData();
+        getData(page);
+        fregment_listview_lv.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                fregment_listview_lv.onRefreshComplete();
+            }
+        },1000);
     }
 }
 

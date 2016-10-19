@@ -32,6 +32,7 @@ public class NetActivity extends AppCompatActivity implements View.OnClickListen
                 break;
             case R.id.btn_no:
                 NetActivity.this.finish();
+
                 break;
         }
     }

@@ -5,22 +5,20 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
 import android.widget.AdapterView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.ListView;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshListView;
 import com.qf.wmj.day24myprojectfortest.R;
 import com.qf.wmj.day24myprojectfortest.activity.Info;
 import com.qf.wmj.day24myprojectfortest.adapter.FragmentAdapter;
@@ -35,13 +33,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Created by JB on 2016/10/12.
  */
-public class AFragment extends Fragment implements AdapterView.OnItemClickListener, AbsListView.OnScrollListener, JsonDownloadUtil.onDownloadJsonListener, ViewPager.OnPageChangeListener {
+public class AFragment extends Fragment implements AdapterView.OnItemClickListener, JsonDownloadUtil.onDownloadJsonListener,
+        ViewPager.OnPageChangeListener, PullToRefreshBase.OnLastItemVisibleListener,PullToRefreshBase.OnRefreshListener {
     private int page=1;
-    private ListView fregment_listview_lv;
+    private PullToRefreshListView fregment_listview_lv;
     // 是否在底部
     boolean isBottom = false;
     // 是否在顶部
@@ -50,41 +51,34 @@ public class AFragment extends Fragment implements AdapterView.OnItemClickListen
     private ArrayList<Bean> list1=new ArrayList<Bean>();
     private ViewPager vp;
     private RadioGroup rg;
-    private Handler handler;
+    private Handler handler=new Handler();
+    private Timer timer;
+    private boolean isSend = true;
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        handler=new Handler(){
-            @Override
-            public void handleMessage(Message msg) {
-                switch (msg.what) {
-                    case 1:
-                        vp.setCurrentItem(num);
-                        break;
 
-                    default:
-                        break;
-                }
-                super.handleMessage(msg);
-            }
-        };
         return inflater.inflate(R.layout.fregment_listview,container,false);
     }
 
     @Override
     public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        fregment_listview_lv = (ListView) view.findViewById(R.id.fregment_listview_lv);
+        fregment_listview_lv = (PullToRefreshListView) view.findViewById(R.id.fregment_listview_lv);
         //添加顶部试图
         addTopView(fregment_listview_lv);
         //获取当前页数据
         getData(page);
         adapter= new FragmentAdapter(getActivity());
         fregment_listview_lv.setAdapter(adapter);
-        // 设置滑动监听器
-        fregment_listview_lv.setOnScrollListener(this);
+        //上拉刷新监听
+        fregment_listview_lv.setOnRefreshListener(this);
+        //下拉加载监听
+        fregment_listview_lv.setOnLastItemVisibleListener(this);
         // 设置Item点击监听器
         fregment_listview_lv.setOnItemClickListener(this);
+
     }
 
     private void getData(int page) {
@@ -96,7 +90,7 @@ public class AFragment extends Fragment implements AdapterView.OnItemClickListen
         JsonDownloadUtil.downloadJson(getActivity(),p,this);
     }
 
-    private void addTopView(ListView fregment_listview_lv) {
+    private void addTopView(PullToRefreshListView fregment_listview_lv) {
         int[] imgs = {R.drawable.top1,R.drawable.top5,
                 R.drawable.top3,R.drawable.top4};
         ArrayList<View> vpData = new ArrayList< >();
@@ -105,7 +99,6 @@ public class AFragment extends Fragment implements AdapterView.OnItemClickListen
             LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(ViewPager.LayoutParams.MATCH_PARENT,
                     ViewPager.LayoutParams.MATCH_PARENT);
             iv.setLayoutParams(params);
-            //iv.setScaleType(ImageView.ScaleType.CENTER);
             iv.setScaleType(ImageView.ScaleType.FIT_XY);
             iv.setImageResource(imgs[i]);
             vpData.add(iv);
@@ -120,7 +113,7 @@ public class AFragment extends Fragment implements AdapterView.OnItemClickListen
         //头部视图设置滑动监听
         vp.setOnPageChangeListener(this);
         //添加头部视图
-        fregment_listview_lv.addHeaderView(topView);
+        fregment_listview_lv.getRefreshableView().addHeaderView(topView);
     }
 
     @Override
@@ -134,55 +127,33 @@ public class AFragment extends Fragment implements AdapterView.OnItemClickListen
             startActivity(intent);
         }
     }
-
-    @Override
-    public void onScrollStateChanged(AbsListView view, int scrollState) {
-        // 判断当前滑动状态是否为停止状态
-        if (scrollState == SCROLL_STATE_IDLE) {
-            // 判断是否为底部，是则获取当前页数进行加载，页数自增
-            if (isBottom) {
-                page++;
-                getData(page);
-                // 判断是否为顶部，是则清除当前数据，页数重置实现刷新
-            } else if (isTop) {
-                page = 1;
-                adapter.clearData();
-                getData(page);
-            }
-        }
-    }
-
-    @Override
-    public void onScroll(AbsListView view, int firstVisibleItem, int visibleItemCount, int totalItemCount) {
-        isBottom = firstVisibleItem + visibleItemCount == totalItemCount;
-        isTop = firstVisibleItem == 0;
-    }
-
     private int num =0;
     //头部视图轮播
     @Override
     public void onResume() {
-        super.onResume();
-        new Thread(new Runnable() {
 
+        super.onResume();
+
+        timer = new Timer();
+        timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                while (true) {
-                    try {
-                        Thread.sleep(3000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (vp!=null) {
+                            vp.setCurrentItem(num);
+                        }
+                        num++;
+                        if(num==4){
+                            num=0;
+                        }
                     }
-                    handler.sendEmptyMessage(1);
-                    num++;
-                    if(num==4){
-                        num=0;
-                    }
-                }
+                });
             }
-        }).start();
-    }
+        },0,3000);
 
+    }
     @Override
     public void onSendJson(String json) {
         DBManager manager = new DBManager(getActivity());
@@ -248,5 +219,43 @@ public class AFragment extends Fragment implements AdapterView.OnItemClickListen
     @Override
     public void onPageScrollStateChanged(int state) {
 
+    }
+
+    /**
+     * 上拉加载时调用
+     */
+    @Override
+    public void onLastItemVisible() {
+        page++;
+        getData(page);
+    }
+
+    /**
+     * 下拉刷新时调用
+     * @param refreshView
+     */
+    @Override
+    public void onRefresh(PullToRefreshBase refreshView) {
+        page = 1;
+        adapter.clearData();
+        getData(page);
+        /**
+         * 隐藏刷新试图
+         */
+        fregment_listview_lv.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                fregment_listview_lv.onRefreshComplete();
+            }
+        }, 1000);
+
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if (timer!=null) {
+            timer.cancel();
+        }
     }
 }
