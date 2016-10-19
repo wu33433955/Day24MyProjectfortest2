@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animation-list xmlns:android="http://schemas.android.com/apk/res/android" >
+    <!-- 帧动画：一张一张图片按照一定顺序展示
+    	该顺序是item的书写顺序，即从上向下
+    	drawable：当前Item展示的图片
+    	duration：当前item显示的时长，单位毫秒
+    	缺点：大量使用图片，占用内存
+     -->
+	<item android:drawable="@drawable/load01" android:duration="200"></item>
+	<item android:drawable="@drawable/load02" android:duration="200"></item>
+	<item android:drawable="@drawable/load03" android:duration="200"></item>
+	<item android:drawable="@drawable/load04" android:duration="200"></item>
+	<item android:drawable="@drawable/load05" android:duration="200"></item>
+	<item android:drawable="@drawable/load06" android:duration="200"></item>
+	<item android:drawable="@drawable/load07" android:duration="200"></item>
+	<item android:drawable="@drawable/load08" android:duration="200"></item>
+	<item android:drawable="@drawable/load09" android:duration="200"></item>
+	<item android:drawable="@drawable/load10" android:duration="200"></item>
+	<item android:drawable="@drawable/load11" android:duration="200"></item>
+	<item android:drawable="@drawable/load12" android:duration="200"></item>
+	<item android:drawable="@drawable/load13" android:duration="200"></item>
+	<item android:drawable="@drawable/load14" android:duration="200"></item>
+	<item android:drawable="@drawable/load15" android:duration="200"></item>
+	<item android:drawable="@drawable/load16" android:duration="200"></item>
+	<item android:drawable="@drawable/load17" android:duration="200"></item>
+	<item android:drawable="@drawable/load18" android:duration="200"></item>
+	<item android:drawable="@drawable/load19" android:duration="200"></item>
+	<item android:drawable="@drawable/load20" android:duration="200"></item>
+	<item android:drawable="@drawable/load21" android:duration="200"></item>
+	<item android:drawable="@drawable/load22" android:duration="200"></item>
+	<item android:drawable="@drawable/load23" android:duration="200"></item>
+	<item android:drawable="@drawable/load24" android:duration="200"></item>
+	<item android:drawable="@drawable/load25" android:duration="200"></item>
+	<item android:drawable="@drawable/load26" android:duration="200"></item>
+	<item android:drawable="@drawable/load27" android:duration="200"></item>
+	<item android:drawable="@drawable/load28" android:duration="200"></item>
+	<item android:drawable="@drawable/load29" android:duration="200"></item>
+	<item android:drawable="@drawable/load30" android:duration="200"></item>
+	<item android:drawable="@drawable/load31" android:duration="200"></item>
+
+</animation-list>
