@@ -48,12 +48,11 @@ public class AFragment extends Fragment implements AdapterView.OnItemClickListen
     // 是否在顶部
     boolean isTop = false;
     private FragmentAdapter adapter;
-    private ArrayList<Bean> list1=new ArrayList<Bean>();
+    private ArrayList<Bean> list1=new ArrayList<>();
     private ViewPager vp;
     private RadioGroup rg;
     private Handler handler=new Handler();
     private Timer timer;
-    private boolean isSend = true;
 
     @Nullable
     @Override

@@ -22,10 +22,12 @@ public class boardcast extends BroadcastReceiver{
             //获取网络信息类型
             int type = info.getType();
             switch (type){
-                //移动网络
+                //移动网络/
                 case ConnectivityManager.TYPE_MOBILE:
                     Intent intent1 = new Intent(context, NetActivity.class);
+                    intent1.setFlags(intent.FLAG_ACTIVITY_NEW_TASK);
                     context.startActivity(intent1);
+
                     SharedPreferences sp = context.getSharedPreferences("isWIFI", Context.MODE_PRIVATE);
                     SharedPreferences.Editor editor = sp.edit();
                     editor.putBoolean("isWIFI",false);

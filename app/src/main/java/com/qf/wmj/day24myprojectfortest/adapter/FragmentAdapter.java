@@ -93,8 +93,6 @@ public class FragmentAdapter extends BaseAdapter{
         if(wifi){
             Glide.with(context).load(bean.getCover_url()).into(holder.img);
         }
-        //holder.img.setTag(bean.getCover_url());
-       // BitmapDownloadUtil.downloadBitmap(bean.getCover_url(), holder.img);
         //返回当前带有数据的视图
         return convertView;
     }

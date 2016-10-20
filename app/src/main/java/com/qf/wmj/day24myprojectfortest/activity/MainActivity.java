@@ -63,18 +63,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         IntentFilter filter=new IntentFilter();
         //实例化广播接收者
         bd = new boardcast();
-        //添加行为
-        filter.addAction("WIFI");
+        //添加意图过滤器行为
+        filter.addAction("isWIFI");
         //动态注册广播
         registerReceiver(bd,filter);
-
         //意图
         Intent intent = new Intent();
         //意图行为
-        intent.setAction("WIFI");
+        intent.setAction("isWIFI");
         //发送广播
         sendBroadcast(intent);
-        unregisterReceiver(bd);
+
+
 
         setContentView(R.layout.activity_main);
         initView();
@@ -248,5 +248,12 @@ private boolean isBack=true;
         }else{
             Toast.makeText(context,"请检查您的网路",Toast.LENGTH_SHORT).show();
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        //解绑(解除注册状态)
+        unregisterReceiver(bd);
     }
 }
